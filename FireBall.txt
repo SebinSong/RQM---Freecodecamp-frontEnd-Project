@@ -1,0 +1,256 @@
+<canvas width="600" height="600" style="border:2px solid green"></canvas>
+<script>
+  
+  var canvas = document.querySelector("canvas");
+  var cx = canvas.getContext("2d");
+  var fireBall = { 
+    			   cx: canvas.width/2,
+                   cy: canvas.height/2,
+    			   initialRadius: 15,
+                   radius: this.initialRadius,
+    			   vx: 0,
+                   vy: 0,
+    			   velMax: 0,
+    			   theta: 0,
+    			   powerGauge: 0,
+                   mode: 0, // 0: magnifying the ball 1: launching the created ball
+                   ballsOnTheSide : [],
+    			   initialize : initializeFireBall,
+    			   examine: examineAndAdjust
+    			  
+                  };
+  
+  var requestID, mousedownHold = false;
+
+function initializeFireBall () {
+  this.cx = canvas.width /2, this.cy = canvas.height / 2;
+  this.radius = this.initialRadius;
+  this.vx = 0, this.vy = 0, this.mode = 0;
+  
+  // initialization for sideBalls
+  for(var i=0; i<4; i++) {
+    var sideball = new ConstructSideBalls ();
+    sideball.initialize(i);
+    
+    this.ballsOnTheSide.push(sideball);
+  }
+  
+}
+  
+function ConstructSideBalls () {
+  this.cx = 0, this.cy = 0;
+  this.vx = 0, this.vy = 0;
+  this.radius = 0;
+  
+}
+
+ConstructSideBalls.prototype.initialize = function (index) {
+  
+  var theta, l, cos, sin, velMin, vel;
+  var signs = [[1, -1], [-1, -1], [-1, 1], [ 1, 1]];
+  
+  l = fireBall.radius + 25 + 15 * Math.random();
+  theta = ( Math.PI / 180 ) * (15 + 60*Math.random());
+  cos = Math.cos(theta) * signs[index][0];
+  sin = Math.sin(theta) * signs[index][1];
+  
+  velMin = 0.3;
+  vel = velMin + 0.25 * Math.random(); 
+  
+  this.cx = fireBall.cx + l * cos, this.cy = fireBall.cy + l * sin;
+  cos *= -1, sin *= -1;
+  this.vx = vel * cos, this.vy = vel * sin;
+  this.radius = 3 + Math.random() * 3;
+
+}
+
+function drawFireBall () {
+  
+  var sign = [-1, 1], signforX, signForY, effectX, effectY;
+  
+function modeZero () {  
+
+  //draw small balls on the side of the fireball in the middle
+  // they are stored in fireBall.ballsOnTheSide array
+  cx.fillStyle = "#ffffff";
+  cx.shadowColor = "rgba(40,95,180,1)";
+  
+  for(var i=0; i<fireBall.ballsOnTheSide.length; i++) {
+    var ball = fireBall.ballsOnTheSide[i];
+    
+    cx.save();
+    cx.beginPath();
+    cx.arc(ball.cx, ball.cy, ball.radius, 0, 2*Math.PI, false);
+    cx.shadowBlur = ball.radius;
+    cx.fill();
+    cx.restore();
+    
+  }
+  
+  signX = sign[Math.floor(Math.random()*1.99)];
+  signY = sign[Math.floor(Math.random()*1.99)];
+  effectX = 2 * Math.random() * signX, effectY = 2 * Math.random() * signY;
+  
+  //draw the Firball in the middle first. 
+  cx.beginPath();
+  cx.arc(canvas.width/2 + effectX, canvas.height/2 + effectY, fireBall.radius, 0, 2*Math.PI, false);
+  cx.shadowBlur = fireBall.radius;
+  cx.fill();
+}
+
+function modeOne () {
+  
+  var subRadius, angle, sin, cos, surCx, surCy;
+  
+  signX = (fireBall.vx<0)? +1 : -1, signY = +1;
+  
+  cx.fillStyle = "#ffffff";
+  cx.shadowColor = "rgba(40,95,180,1)";
+  cx.shadowBlur = fireBall.radius;
+  
+  cx.beginPath();
+  cx.arc(fireBall.cx, fireBall.cy, fireBall.radius, 0, 2*Math.PI, false);
+  cx.fill();
+  
+  
+  
+  subRadius = fireBall.radius / 3;
+  angle = (requestID% 36) * 10;
+  angle = angle * Math.PI / 180;
+  sin = Math.sin(angle), cos = Math.cos(angle);
+  
+  surCx = fireBall.radius * 1.8 * cos;
+  surCy = fireBall.radius * 1.8 * sin;
+  
+  cx.save();
+  cx.translate(fireBall.cx, fireBall.cy);
+  cx.globalAlpha = 0.3;
+  cx.beginPath();
+  cx.arc(surCx, surCy, subRadius, 0, 2*Math.PI, false);
+  cx.fill();
+
+  cx.rotate(Math.PI/2);
+  cx.beginPath();
+  cx.arc(surCx, surCy, subRadius, 0, 2*Math.PI, false);
+  cx.fill();
+
+  cx.rotate(Math.PI/2);
+  cx.beginPath();
+  cx.arc(surCx, surCy, subRadius, 0, 2*Math.PI, false);
+  cx.fill();
+  
+  cx.rotate(Math.PI/2);
+  cx.beginPath();
+  cx.arc(surCx, surCy, subRadius, 0, 2*Math.PI, false);
+  cx.fill();
+  
+  cx.restore();
+  
+}
+  
+  cx.save();
+  cx.clearRect(0,0,canvas.width,canvas.height);
+  canvas.style.backgroundColor = "rgba(40, 170, 180, 0.5)";
+  
+  if(fireBall.mode === 0) modeZero();
+  else modeOne();
+  
+  cx.restore();
+}
+
+function examineAndAdjust () {
+  
+  function checkAndAdjust (ball, index) {
+    var X, Y, distance;
+    
+    X = this.cx - ball.cx, Y = this.cy - ball.cy;
+    distance = Math.sqrt(X*X + Y*Y);
+    
+    if(distance <= (this.radius/3*2)) ball.initialize(index);
+    else {
+      ball.cx += ball.vx, ball.cy += ball.vy;
+      ball.vx *= 1.04, ball.vy *= 1.04;
+    }
+    
+  }
+  
+  var balls = this.ballsOnTheSide;
+
+  balls.forEach(checkAndAdjust, this);
+  this.radius += 0.1;
+  
+}
+  
+
+function animationForBall () {
+  
+  drawFireBall();
+  fireBall.examine();
+  
+  fireBall.powerGauge += 0.15;
+  
+  requestID = requestAnimationFrame(animationForBall);
+}
+  
+function launchFireBall () {
+  
+  function adjustment () {
+    var vx, vy, scalarVel, signX;
+    
+    vx = fireBall.vx, vy = fireBall.vy, signX = (vx<0)? -1: 1;
+    scalarVel = Math.sqrt(vx*vx + vy*vy);
+    
+    fireBall.cx += vx, fireBall.cy += vy;
+    fireBall.vx *= 1.1, fireBall.vy *= 1.1;
+    
+    if(scalarVel > fireBall.velMax) {
+      fireBall.vx = fireBall.velMax * Math.cos(fireBall.theta) * signX;
+      fireBall.vy = fireBall.velMax * Math.sin(fireBall.theta) * (-1);
+    }
+  }
+  
+  drawFireBall();
+  adjustment();
+  
+  requestID = requestAnimationFrame(launchFireBall);
+}
+function launchSetting (event) {
+// set the first values of the speeds at which the fireball flys
+// they are determined based on the current position of the mouse pointer.
+  var theta, velMax, vel, signX, sin, cos, X, Y;
+  
+  X = Math.abs(event.clientX - fireBall.cx);
+  Y = Math.abs(event.clientY - fireBall.cy);
+  theta = Math.atan(Y/X), sin = Math.sin(theta), cos = Math.cos(theta);
+  fireBall.theta = theta;
+  console.log("theta: ", (180/Math.PI)*theta);
+  signX = (event.clientX - fireBall.cx < 0)? -1 : 1;
+  
+  velMax = 80, fireBall.velMax = (fireBall.powerGauge / 100) * velMax;
+  vel = 0.5, fireBall.vx = signX*vel*cos, fireBall.vy = (-1)*vel*sin;
+  
+  
+}
+  
+  canvas.onmousedown = function(event) {
+    event.preventDefault();
+    requestID = requestAnimationFrame(animationForBall);
+  }
+  
+  canvas.onmouseup = function (event) {
+    event.preventDefault();   
+    cancelAnimationFrame(requestID);
+    
+    fireBall.powerGauge = 42.5;
+    fireBall.mode = 1;
+    
+    launchSetting(event);
+    requestID = requestAnimationFrame(launchFireBall);
+    
+    console.log("Animation Finished!", requestID);
+  }
+
+
+fireBall.initialize();
+  
+</script>
