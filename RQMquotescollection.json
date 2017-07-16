@@ -1,6 +1,6 @@
-{
-
-hope: { keyword: "HOPE",
+[
+	
+{ keyword: "HOPE",
         quotes: [
 		  {author: "Friedrich Nietzche",
  		   words: ["A thinker sees his own actions as experiments and",
@@ -97,7 +97,7 @@ hope: { keyword: "HOPE",
 
      ]},
 
-courage: { keyword: "COURAGE",
+    { keyword: "COURAGE",
 	   quotes: [
 
 	   {author: "Lao Tzu",
@@ -172,7 +172,7 @@ courage: { keyword: "COURAGE",
 
 	 ]},
 
-life: { keyword: "LIFE",
+     { keyword: "LIFE",
 	   quotes: [
 
 	   {author: "Albert Einstein",
@@ -249,7 +249,7 @@ life: { keyword: "LIFE",
 		    "or the person you loved."
 	   ]}
 	 ]},
-failure: { keyword: "FAILURE",
+{ keyword: "FAILURE",
 	   quotes: [
 
 	   {author: "Herbert Bayard Swope",
@@ -299,6 +299,7 @@ failure: { keyword: "FAILURE",
 	    words: ["When you take risks you learn that there will be times",
 		    "when you succeed and there will be times when you fail",
 		    "and both are equally important."
+	   ]},
 	   {author: "Roy T. Bennett",
 	    words: ["How much you can learn when you fail determines",
 		    "how far you will go into achieving your goals."
